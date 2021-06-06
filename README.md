@@ -19,3 +19,14 @@ Available notes & code:
 * [how to setup go environment for vim](https://pmihaylov.com/vim-for-go-development/)
 * [Some useful exercises to do in your free time](https://gophercises.com/)
 * other than that I’d suggest doing some algorithms-type tasks with Go. [Good site for that is leetcode](https://leetcode.com/)
+
+[Week 2]
+
+* [Error values & handling - Maybe the future](https://go.googlesource.com/proposal/+/master/design/go2draft.md)
+* [Scheduler](https://github.com/golang/go/blob/master/src/runtime/proc.go)
+* [Concurrency is not parallelism](https://www.youtube.com/watch?v=oV9rvDllKEg)
+* Testing - Check out Gomock & Testify
+* [App structure](https://www.youtube.com/watch?v=VQym87o91f8)
+
+Next time - GRPC and writing code.
+Remember to install the protobuff compiler ;o)
