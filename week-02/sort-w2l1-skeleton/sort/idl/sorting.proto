@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
+
+import "types.proto";
+
+// TODO: Implement the sorting service interface
