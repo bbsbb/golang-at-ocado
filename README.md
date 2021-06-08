@@ -30,3 +30,10 @@ Available notes & code:
 
 Next time - GRPC and writing code.
 Remember to install the protobuff compiler ;o)
+* how to setup go environment (windows) - https://www.youtube.com/watch?v=xEe4QAFMsSg&ab_channel=PreslavMihaylov
+* how to setup go environment (macos) - https://www.youtube.com/watch?v=nY7IGLPC-3M&ab_channel=PreslavMihaylov
+* how to setup go environment for vim - https://pmihaylov.com/vim-for-go-development/
+* Some useful exercises to do in your free time:
+    * https://gophercises.com/
+* other than that I’d suggest doing some algorithms-type tasks with Go. Good site for that is leetcode
+    * https://leetcode.com/
