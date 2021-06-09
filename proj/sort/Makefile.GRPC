@@ -1,5 +1,5 @@
 grpc-init:
-	if ! [ -d "./gen" ]; then mkdir gen && cd gen && go mod init github.com/bbsbb/go-at-ocado/sort/gen; fi
+	if ! [ -d "./gen" ]; then mkdir gen && cd gen && go mod init github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen; fi
 
 grpc-compile: grpc-init
 	protoc -I /usr/local/include -I idl idl/types.proto \

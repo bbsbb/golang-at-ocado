@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/bbsbb/go-at-ocado/sort/gen"
+	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
 )
 
 func newSortingService() gen.SortingRobotServer {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/bbsbb/go-at-ocado/sort/gen"
+	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package types;
-option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
+option go_package = "github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen";
 
 message Item {
     string code = 1;
