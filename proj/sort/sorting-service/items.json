@@ -1,0 +1,8 @@
+{
+    "items": [
+        {"code": "123-345", "label": "no-label"},
+        {"code": "234-456", "label": "no-label"},
+        {"code": "345-567", "label": "no-label"},
+        {"code": "456-678", "label": "no-label"}
+    ]
+}

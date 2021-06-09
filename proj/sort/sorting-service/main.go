@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const serverPort = "localhost:10000"
+const serverPort = ":10000"
 
 func main() {
 	grpcServer, lis := newSortingServer()
