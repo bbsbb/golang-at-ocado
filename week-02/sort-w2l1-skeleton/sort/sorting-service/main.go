@@ -26,7 +26,7 @@ func newSortingServer() (*grpc.Server, net.Listener) {
 	}
 
 	grpcServer := grpc.NewServer()
-	gen.RegisterSortingServer(grpcServer, newSortingService())
+	gen.RegisterSortingRobotServer(grpcServer, newSortingService())
 	reflection.Register(grpcServer)
 
 	return grpcServer, lis
