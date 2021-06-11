@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"testing"
-	"time"
 
 	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
 )
@@ -11,20 +9,43 @@ import (
 func TestLoadItems(t *testing.T) {
 	service := &sortingService{}
 
-	initialLength := len(service.items)
+	initialItemsCount := len(service.items)
 
 	loadItemsReqPayload := getLoadItemsPayload()
 
 	addedItemsCount := len(loadItemsReqPayload.Items)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	_, err := service.loadItems(loadItemsReqPayload)
 
-	defer cancel()
+	if err != nil {
+		t.Errorf("error lading items: %v", err)
+		t.FailNow()
+	}
 
-	service.LoadItems(ctx, loadItemsReqPayload)
-
-	if initialLength+addedItemsCount != len(service.items) {
+	if initialItemsCount+addedItemsCount != len(service.items) {
 		t.Error("length of payload != length of loaded items")
+		t.FailNow()
+	}
+}
+
+func TestLoadItemsOnNonEmptyItemSlice(t *testing.T) {
+	loadedService := getLoadedService()
+
+	initialItemsCount := len(loadedService.items)
+
+	loadItemsReqPayload := getLoadItemsPayload()
+
+	addedItemsCount := len(loadItemsReqPayload.Items)
+
+	_, err := loadedService.loadItems(loadItemsReqPayload)
+
+	if err != nil {
+		t.Errorf("error lading items: %v", err)
+		t.FailNow()
+	}
+
+	if initialItemsCount+addedItemsCount != len(loadedService.items) {
+		t.Error("len(items) + len(itemsToAdd) != len(itemsAfterLoading)")
 		t.FailNow()
 	}
 }
@@ -32,13 +53,14 @@ func TestLoadItems(t *testing.T) {
 func TestSelectItem(t *testing.T) {
 	loadedService := getLoadedService()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-	defer cancel()
-
 	itemsCountBeforeSelecting := len(loadedService.items)
 
-	res, _ := loadedService.SelectItem(ctx, &gen.SelectItemRequest{})
+	res, err := loadedService.selectItem()
+
+	if err != nil {
+		t.Errorf("error selecting item: %v", err)
+		t.FailNow()
+	}
 
 	if res == nil {
 		t.Error("no item picked")
@@ -46,19 +68,15 @@ func TestSelectItem(t *testing.T) {
 	}
 
 	if itemsCountBeforeSelecting != len(loadedService.items)+1 {
-		t.Error("number of item not reduced by one")
+		t.Error("count of items not reduced by one")
 		t.FailNow()
 	}
 }
 
-func TestSelectItemEmptyArrayError(t *testing.T) {
+func TestSelectItemEmptyItemSliceError(t *testing.T) {
 	loadedService := &sortingService{}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-	defer cancel()
-
-	_, err := loadedService.SelectItem(ctx, &gen.SelectItemRequest{})
+	_, err := loadedService.selectItem()
 
 	if err == nil {
 		t.Error("error expected")
@@ -69,13 +87,38 @@ func TestSelectItemEmptyArrayError(t *testing.T) {
 func TestSelectItemAlreadySelectedItemError(t *testing.T) {
 	loadedService := getLoadedService()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	loadedService.selectItem()
 
-	defer cancel()
+	_, err := loadedService.selectItem()
 
-	loadedService.SelectItem(ctx, &gen.SelectItemRequest{})
+	if err == nil {
+		t.Error("error expected")
+		t.FailNow()
+	}
+}
 
-	_, err := loadedService.SelectItem(ctx, &gen.SelectItemRequest{})
+func TestMoveItem(t *testing.T) {
+	loadedService := getLoadedService()
+
+	loadedService.selectItem()
+
+	_, err := loadedService.moveItem(getMoveItemsPayload())
+
+	if err != nil {
+		t.Errorf("error moving item: %v", err)
+		t.FailNow()
+	}
+
+	if loadedService.itemSelected != nil {
+		t.Error("hand not empty")
+		t.FailNow()
+	}
+}
+
+func TestMoveItemEmptyHandError(t *testing.T) {
+	service := &sortingService{}
+
+	_, err := service.moveItem(getMoveItemsPayload())
 
 	if err == nil {
 		t.Error("error expected")
@@ -86,19 +129,21 @@ func TestSelectItemAlreadySelectedItemError(t *testing.T) {
 func getLoadedService() *sortingService {
 	s := &sortingService{}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-	defer cancel()
-
-	s.LoadItems(ctx, getLoadItemsPayload())
+	s.loadItems(getLoadItemsPayload())
 
 	return s
 }
 
 func getLoadItemsPayload() *gen.LoadItemsRequest {
 	return &gen.LoadItemsRequest{Items: []*gen.Item{
-		&gen.Item{Code: "1234", Label: "label1"},
-		&gen.Item{Code: "2345", Label: "label2"},
-		&gen.Item{Code: "3456", Label: "label3"},
+		{Code: "1234", Label: "label1"},
+		{Code: "2345", Label: "label2"},
+		{Code: "3456", Label: "label3"},
 	}}
+}
+
+func getMoveItemsPayload() *gen.MoveItemRequest {
+	return &gen.MoveItemRequest{
+		Cubby: &gen.Cubby{Id: "1"},
+	}
 }

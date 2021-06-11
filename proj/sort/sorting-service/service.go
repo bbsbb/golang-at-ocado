@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
@@ -15,6 +15,7 @@ func newSortingService() gen.SortingRobotServer {
 }
 
 type sortingService struct {
+	mu           sync.Mutex
 	items        []*gen.Item
 	itemSelected *gen.Item
 }
@@ -23,18 +24,30 @@ var randSource = rand.NewSource(time.Now().UnixNano())
 var random = rand.New(randSource)
 
 func (s *sortingService) LoadItems(ctx context.Context, reqPayload *gen.LoadItemsRequest) (*gen.LoadItemsResponse, error) {
+	return s.loadItems(reqPayload)
+}
+
+func (s *sortingService) SelectItem(ctx context.Context, reqPayload *gen.SelectItemRequest) (*gen.SelectItemResponse, error) {
+	return s.selectItem()
+}
+
+func (s *sortingService) MoveItem(ctx context.Context, reqPayload *gen.MoveItemRequest) (*gen.MoveItemResponse, error) {
+	return s.moveItem(reqPayload)
+}
+
+func (s *sortingService) loadItems(reqPayload *gen.LoadItemsRequest) (*gen.LoadItemsResponse, error) {
+	s.mu.Lock()
+
 	s.items = append(s.items, reqPayload.Items...)
 
-	copy(s.items, reqPayload.Items)
-
-	log.Println("items loaded: ")
-
-	s.printItems()
+	s.mu.Unlock()
 
 	return &gen.LoadItemsResponse{}, nil
 }
 
-func (s *sortingService) SelectItem(ctx context.Context, reqPayload *gen.SelectItemRequest) (*gen.SelectItemResponse, error) {
+func (s *sortingService) selectItem() (*gen.SelectItemResponse, error) {
+	s.mu.Lock()
+
 	if s.itemSelected != nil {
 		return nil, errors.New("item already selected in hand")
 	}
@@ -45,41 +58,35 @@ func (s *sortingService) SelectItem(ctx context.Context, reqPayload *gen.SelectI
 
 	itemsCount := len(s.items)
 
-	var randomItemIndex int
+	randomItemIndex := 0
 
-	if itemsCount == 1 {
-		randomItemIndex = 0
-	} else {
+	if itemsCount > 0 {
 		randomItemIndex = random.Intn(itemsCount - 1)
 	}
-	// TODO: use mutex
-	s.itemSelected = s.items[randomItemIndex]
 
-	log.Printf("item picked: %v\n", s.itemSelected.Code)
+	s.itemSelected = s.items[randomItemIndex]
 
 	s.items[randomItemIndex] = s.items[itemsCount-1]
 
 	s.items = s.items[:itemsCount-1]
 
-	return &gen.SelectItemResponse{Item: s.itemSelected}, nil
+	res := &gen.SelectItemResponse{Item: s.itemSelected}
+
+	s.mu.Unlock()
+
+	return res, nil
 }
 
-func (s *sortingService) MoveItem(ctx context.Context, reqPayload *gen.MoveItemRequest) (*gen.MoveItemResponse, error) {
+func (s *sortingService) moveItem(reqPayload *gen.MoveItemRequest) (*gen.MoveItemResponse, error) {
+	s.mu.Lock()
+
 	if s.itemSelected == nil {
 		return nil, errors.New("no item in hand")
 	}
 
-	log.Printf("item %v moved to %v\n", s.itemSelected.Code, reqPayload.Cubby.Id)
-	log.Println("items remaining:")
-	s.printItems()
-
 	s.itemSelected = nil
 
-	return &gen.MoveItemResponse{}, nil
-}
+	s.mu.Unlock()
 
-func (s *sortingService) printItems() {
-	for _, v := range s.items {
-		log.Printf("\t%v\n", v)
-	}
+	return &gen.MoveItemResponse{}, nil
 }
