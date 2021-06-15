@@ -1,2 +1,2 @@
 gen
-!gen/go.mod
+!*/go.mod
