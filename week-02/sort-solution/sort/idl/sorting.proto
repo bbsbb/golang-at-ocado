@@ -1,31 +1,35 @@
 syntax = "proto3";
 
+package types;
 option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
 
 import "types.proto";
 
-service SortingRobot {
-  rpc LoadItems(LoadItemsRequest) returns (LoadItemsResponse) {}
-  rpc MoveItem(MoveItemRequest) returns (MoveItemResponse) {}
-  rpc SelectItem(SelectItemRequest) returns (SelectItemResponse) {}
+service Sorting {
+    rpc LoadItems(types.LoadItemsRequest) returns (Empty);
+    rpc PickItem(Empty) returns (types.PickItemResponse);
+    rpc PlaceInCubby(types.PlaceInCubbyRequest) returns (Empty);
+    rpc AuditState(Empty) returns (AuditStateResponse);
 }
+
+message Empty {}
 
 message LoadItemsRequest {
     repeated types.Item items = 1;
 }
+message PlaceInCubbyRequest {
+    types.Cubby cubby = 1;
+}
 
-message LoadItemsResponse {}
+message PickItemResponse {
+    types.Item item = 2;
+}
 
-message MoveItemRequest {
+message AuditStateResponse {
+  repeated CubbyToItems cubbiesToItems = 1;
+}
+
+message CubbyToItems {
   types.Cubby cubby = 1;
+  repeated types.Item items = 2;
 }
-
-message MoveItemResponse {}
-
-message SelectItemRequest {}
-
-message SelectItemResponse {
-  types.Item item = 1;
-}
-
-
