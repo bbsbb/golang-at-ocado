@@ -37,16 +37,16 @@ func (s *sortingService) MoveItem(ctx context.Context, reqPayload *gen.MoveItemR
 
 func (s *sortingService) loadItems(reqPayload *gen.LoadItemsRequest) (*gen.LoadItemsResponse, error) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	s.items = append(s.items, reqPayload.Items...)
-
-	s.mu.Unlock()
 
 	return &gen.LoadItemsResponse{}, nil
 }
 
 func (s *sortingService) selectItem() (*gen.SelectItemResponse, error) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if s.itemSelected != nil {
 		return nil, errors.New("item already selected in hand")
@@ -57,36 +57,27 @@ func (s *sortingService) selectItem() (*gen.SelectItemResponse, error) {
 	}
 
 	itemsCount := len(s.items)
-
 	randomItemIndex := 0
-
 	if itemsCount > 0 {
 		randomItemIndex = random.Intn(itemsCount - 1)
 	}
 
 	s.itemSelected = s.items[randomItemIndex]
-
 	s.items[randomItemIndex] = s.items[itemsCount-1]
-
 	s.items = s.items[:itemsCount-1]
 
-	res := &gen.SelectItemResponse{Item: s.itemSelected}
-
-	s.mu.Unlock()
-
-	return res, nil
+	return &gen.SelectItemResponse{Item: s.itemSelected}, nil
 }
 
 func (s *sortingService) moveItem(reqPayload *gen.MoveItemRequest) (*gen.MoveItemResponse, error) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if s.itemSelected == nil {
 		return nil, errors.New("no item in hand")
 	}
 
 	s.itemSelected = nil
-
-	s.mu.Unlock()
 
 	return &gen.MoveItemResponse{}, nil
 }

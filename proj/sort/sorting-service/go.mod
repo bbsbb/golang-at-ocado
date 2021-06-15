@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210609144727-f83cb34ec5db
+	github.com/stretchr/testify v1.7.0 // indirect
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0 // indirect
 )

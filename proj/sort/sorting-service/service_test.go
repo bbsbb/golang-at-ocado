@@ -4,132 +4,97 @@ import (
 	"testing"
 
 	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadItems(t *testing.T) {
-	service := &sortingService{}
-
-	initialItemsCount := len(service.items)
-
-	loadItemsReqPayload := getLoadItemsPayload()
-
-	addedItemsCount := len(loadItemsReqPayload.Items)
-
-	_, err := service.loadItems(loadItemsReqPayload)
-
-	if err != nil {
-		t.Errorf("error lading items: %v", err)
-		t.FailNow()
+	testCases := []struct {
+		name                string
+		service             *sortingService
+		loadItemsReqPayload *gen.LoadItemsRequest
+	}{
+		{
+			name:                "test load items",
+			service:             &sortingService{},
+			loadItemsReqPayload: getLoadItemsPayload(),
+		},
+		{
+			name:                "test load items on non empty main cubby",
+			service:             getLoadedService(),
+			loadItemsReqPayload: getLoadItemsPayload(),
+		},
 	}
 
-	if initialItemsCount+addedItemsCount != len(service.items) {
-		t.Error("length of payload != length of loaded items")
-		t.FailNow()
-	}
-}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			initialItemsCount := len(tc.service.items)
+			addedItemsCount := len(tc.loadItemsReqPayload.Items)
 
-func TestLoadItemsOnNonEmptyItemSlice(t *testing.T) {
-	loadedService := getLoadedService()
-
-	initialItemsCount := len(loadedService.items)
-
-	loadItemsReqPayload := getLoadItemsPayload()
-
-	addedItemsCount := len(loadItemsReqPayload.Items)
-
-	_, err := loadedService.loadItems(loadItemsReqPayload)
-
-	if err != nil {
-		t.Errorf("error lading items: %v", err)
-		t.FailNow()
-	}
-
-	if initialItemsCount+addedItemsCount != len(loadedService.items) {
-		t.Error("len(items) + len(itemsToAdd) != len(itemsAfterLoading)")
-		t.FailNow()
+			_, err := tc.service.loadItems(tc.loadItemsReqPayload)
+			assert.Nil(t, err)
+			assert.Equal(t, initialItemsCount+addedItemsCount, len(tc.service.items))
+		})
 	}
 }
 
 func TestSelectItem(t *testing.T) {
-	loadedService := getLoadedService()
+	service := getLoadedService()
+	itemsCountBeforeSelecting := len(service.items)
 
-	itemsCountBeforeSelecting := len(loadedService.items)
-
-	res, err := loadedService.selectItem()
-
-	if err != nil {
-		t.Errorf("error selecting item: %v", err)
-		t.FailNow()
-	}
-
-	if res == nil {
-		t.Error("no item picked")
-		t.FailNow()
-	}
-
-	if itemsCountBeforeSelecting != len(loadedService.items)+1 {
-		t.Error("count of items not reduced by one")
-		t.FailNow()
-	}
+	res, err := service.selectItem()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, len(service.items), itemsCountBeforeSelecting-1)
 }
 
-func TestSelectItemEmptyItemSliceError(t *testing.T) {
-	loadedService := &sortingService{}
-
-	_, err := loadedService.selectItem()
-
-	if err == nil {
-		t.Error("error expected")
-		t.FailNow()
+func TestSelectItemErrors(t *testing.T) {
+	testCases := []struct {
+		name    string
+		service *sortingService
+	}{
+		{
+			name:    "test select item on empty main cubby",
+			service: &sortingService{},
+		},
+		{
+			name:    "test select item already selected item in hand",
+			service: getLoadedServiceAndSelect(),
+		},
 	}
-}
 
-func TestSelectItemAlreadySelectedItemError(t *testing.T) {
-	loadedService := getLoadedService()
-
-	loadedService.selectItem()
-
-	_, err := loadedService.selectItem()
-
-	if err == nil {
-		t.Error("error expected")
-		t.FailNow()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := tc.service.selectItem()
+			assert.NotNil(t, err)
+		})
 	}
 }
 
 func TestMoveItem(t *testing.T) {
-	loadedService := getLoadedService()
-
-	loadedService.selectItem()
+	loadedService := getLoadedServiceAndSelect()
 
 	_, err := loadedService.moveItem(getMoveItemsPayload())
-
-	if err != nil {
-		t.Errorf("error moving item: %v", err)
-		t.FailNow()
-	}
-
-	if loadedService.itemSelected != nil {
-		t.Error("hand not empty")
-		t.FailNow()
-	}
+	assert.Nil(t, err)
+	assert.Nil(t, loadedService.itemSelected)
 }
 
 func TestMoveItemEmptyHandError(t *testing.T) {
 	service := &sortingService{}
 
 	_, err := service.moveItem(getMoveItemsPayload())
-
-	if err == nil {
-		t.Error("error expected")
-		t.FailNow()
-	}
+	assert.NotNil(t, err)
 }
 
 func getLoadedService() *sortingService {
 	s := &sortingService{}
-
 	s.loadItems(getLoadItemsPayload())
+
+	return s
+}
+
+func getLoadedServiceAndSelect() *sortingService {
+	s := getLoadedService()
+	s.selectItem()
 
 	return s
 }
