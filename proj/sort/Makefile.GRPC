@@ -2,9 +2,12 @@ grpc-init:
 	if ! [ -d "./gen" ]; then mkdir gen && cd gen && go mod init github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen; fi
 
 grpc-compile: grpc-init
-	protoc -I /usr/local/include -I idl idl/types.proto \
-    --go_out=gen --go-grpc_out=require_unimplemented_servers=false:gen \
-    --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
-	protoc -I /usr/local/include -I idl idl/sorting.proto \
-    --go_out=gen --go-grpc_out=require_unimplemented_servers=false:gen \
-    --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
+	protoc -I idl idl/types.proto \
+	--go_out=gen --go-grpc_out=require_unimplemented_servers=false:gen \
+	--go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
+	protoc -I idl idl/sorting.proto \
+	--go_out=gen --go-grpc_out=require_unimplemented_servers=false:gen \
+	--go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
+	protoc -I idl idl/fulfillment.proto \
+	--go_out=gen --go-grpc_out=require_unimplemented_servers=false:gen \
+	--go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
