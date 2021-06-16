@@ -15,7 +15,7 @@ func TestLoadItems(t *testing.T) {
 	}{
 		{
 			name:                "test load items",
-			service:             &sortingService{},
+			service:             getEmptyService(),
 			loadItemsReqPayload: getLoadItemsPayload(),
 		},
 		{
@@ -54,7 +54,7 @@ func TestSelectItemErrors(t *testing.T) {
 	}{
 		{
 			name:    "test select item on empty main cubby",
-			service: &sortingService{},
+			service: getEmptyService(),
 		},
 		{
 			name:    "test select item already selected item in hand",
@@ -79,36 +79,8 @@ func TestMoveItem(t *testing.T) {
 }
 
 func TestMoveItemEmptyHandError(t *testing.T) {
-	service := &sortingService{}
+	service := getEmptyService()
 
 	_, err := service.moveItem(getMoveItemsPayload())
 	assert.NotNil(t, err)
-}
-
-func getLoadedService() *sortingService {
-	s := &sortingService{}
-	s.loadItems(getLoadItemsPayload())
-
-	return s
-}
-
-func getLoadedServiceAndSelect() *sortingService {
-	s := getLoadedService()
-	s.selectItem()
-
-	return s
-}
-
-func getLoadItemsPayload() *gen.LoadItemsRequest {
-	return &gen.LoadItemsRequest{Items: []*gen.Item{
-		{Code: "1234", Label: "label1"},
-		{Code: "2345", Label: "label2"},
-		{Code: "3456", Label: "label3"},
-	}}
-}
-
-func getMoveItemsPayload() *gen.MoveItemRequest {
-	return &gen.MoveItemRequest{
-		Cubby: &gen.Cubby{Id: "1"},
-	}
 }
