@@ -32,7 +32,7 @@ func NewFulfillmentClient(cc grpc.ClientConnInterface) FulfillmentClient {
 
 func (c *fulfillmentClient) LoadOrders(ctx context.Context, in *LoadOrdersRequest, opts ...grpc.CallOption) (*CompleteResponse, error) {
 	out := new(CompleteResponse)
-	err := c.cc.Invoke(ctx, "/types.Fulfillment/LoadOrders", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Fulfillment/LoadOrders", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func _Fulfillment_LoadOrders_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/types.Fulfillment/LoadOrders",
+		FullMethod: "/Fulfillment/LoadOrders",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FulfillmentServer).LoadOrders(ctx, req.(*LoadOrdersRequest))
@@ -88,7 +88,7 @@ func _Fulfillment_LoadOrders_Handler(srv interface{}, ctx context.Context, dec f
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Fulfillment_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "types.Fulfillment",
+	ServiceName: "Fulfillment",
 	HandlerType: (*FulfillmentServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
