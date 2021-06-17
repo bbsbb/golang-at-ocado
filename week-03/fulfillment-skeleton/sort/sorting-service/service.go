@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/bbsbb/go-at-ocado/sort/gen"
@@ -47,10 +48,13 @@ func (s *sortingService) PickItem(context.Context, *gen.Empty) (*gen.PickItemRes
 	}, nil
 }
 
-func (s *sortingService) PlaceInCubby(context.Context, *gen.PlaceInCubbyRequest) (*gen.Empty, error) {
+func (s *sortingService) PlaceInCubby(ctx context.Context, req *gen.PlaceInCubbyRequest) (*gen.Empty, error) {
 	if s.pickedItem == nil {
 		log.Println("no item is currently picked")
 		return nil, errors.New("no item is currently picked")
+	} else if !isValidCubbyID(req.Cubby.Id) {
+		log.Printf("received invalid cubby id: %s", req.Cubby.Id)
+		return nil, errors.New("invalid cubby ID. Should be in range [1..10]")
 	}
 
 	s.pickedItem = nil
@@ -59,4 +63,9 @@ func (s *sortingService) PlaceInCubby(context.Context, *gen.PlaceInCubbyRequest)
 
 func (s *sortingService) AuditState(context.Context, *gen.Empty) (*gen.AuditStateResponse, error) {
 	return nil, errors.New("not implemented")
+}
+
+func isValidCubbyID(id string) bool {
+	n, err := strconv.Atoi(id)
+	return err != nil && n >= 1 && n <= 10
 }
