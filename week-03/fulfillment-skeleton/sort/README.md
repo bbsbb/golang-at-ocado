@@ -14,15 +14,6 @@ This is the first version of the [SORT system](https://www.youtube.com/watch?v=B
    * `sorting-service/go.mod`, `sorting-service/main.go`, `sorting-service/service.go`
 
 ## Assignment
-In this part of the project, we'll be building the initial version of the sorting service.
-
-Implement the following:
- * LoadItems - loads an input array of items in the service. E.g. ["tomatoes", "cucumber", "potato", "cheese"]
- * SelectItem -> Choose an item at random from the remaining ones in the array. E.g. choose "tomatoes" at random && remove item from existing array
- * MoveItem -> Move the selected item in the input cubby. Simply return "Success" here.
-
-Return an error in any of the following cases:
- * SelectItem is invokes but there are no items in input bin
- * MoveItem is invoked but no item is selected yet
- * SelectItem is invoked when an item is already selected
+In this part of the project, we'll be building the initial version of the fulfillment service which controls the sorting robot.
+The responsibility of the service is to receive a set of items, which are associated to orders and dispatch operations to the robot in order to sort the items in appropriate cubbies for the orders.
 

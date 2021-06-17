@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package types;
+package fulfillment;
 option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
 
 import "types.proto";

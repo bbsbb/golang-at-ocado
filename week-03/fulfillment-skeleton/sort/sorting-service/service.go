@@ -10,7 +10,7 @@ import (
 	"github.com/bbsbb/go-at-ocado/sort/gen"
 )
 
-func newSortingService() gen.SortingServer {
+func newSortingService() gen.SortingRobotServer {
 	rand.Seed(time.Now().UnixNano())
 	return &sortingService{}
 }

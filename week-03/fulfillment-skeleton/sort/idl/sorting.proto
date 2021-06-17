@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package types;
+package sorting;
 option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
 
 import "types.proto";
 
-service Sorting {
-    rpc LoadItems(types.LoadItemsRequest) returns (Empty);
-    rpc PickItem(Empty) returns (types.PickItemResponse);
-    rpc PlaceInCubby(types.PlaceInCubbyRequest) returns (Empty);
+service SortingRobot {
+    rpc LoadItems(LoadItemsRequest) returns (Empty);
+    rpc PickItem(Empty) returns (PickItemResponse);
+    rpc PlaceInCubby(PlaceInCubbyRequest) returns (Empty);
     rpc AuditState(Empty) returns (AuditStateResponse);
 }
 
