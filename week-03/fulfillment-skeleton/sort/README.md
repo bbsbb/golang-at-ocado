@@ -30,3 +30,5 @@ The responsibility of the service is to receive a set of items, which are associ
    * In case of collisions, e.g. two orders are mapped to cubby `5`, remap the second one using the same library.
 
 To test your implementation, use the `./scripts/seed-orders.sh` script.
+
+A starting point for setting up a grpc client - https://grpc.io/docs/languages/go/basics/
