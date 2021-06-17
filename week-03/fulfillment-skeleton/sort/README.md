@@ -29,6 +29,19 @@ The responsibility of the service is to receive a set of items, which are associ
    * To determine the cubby for a given order, use the [ordertocubby library](https://github.com/preslavmihaylov/ordertocubby)
    * In case of collisions, e.g. two orders are mapped to cubby `5`, remap the second one using the same library.
 
-To test your implementation, use the `./scripts/seed-orders.sh` script.
-
 A starting point for setting up a grpc client - https://grpc.io/docs/languages/go/basics/
+
+To test your implementation, use the `./scripts/seed-orders.sh` script.
+Expected mapping:
+```
+order 1  -> cubby 5
+order 2  -> cubby 2
+order 3  -> cubby 3
+order 4  -> cubby 8
+order 5  -> cubby 9
+order 6  -> cubby 6
+order 7  -> cubby 7
+order 8  -> cubby 10
+order 9  -> cubby 1
+order 10 -> cubby 4
+```
