@@ -58,7 +58,8 @@ func (s *sortingService) selectItem() (*gen.SelectItemResponse, error) {
 
 	itemsCount := len(s.items)
 	randomItemIndex := 0
-	if itemsCount > 0 {
+
+	if itemsCount > 1 {
 		randomItemIndex = random.Intn(itemsCount - 1)
 	}
 
@@ -76,7 +77,6 @@ func (s *sortingService) moveItem(reqPayload *gen.MoveItemRequest) (*gen.MoveIte
 	if s.itemSelected == nil {
 		return nil, errors.New("no item in hand")
 	}
-
 	s.itemSelected = nil
 
 	return &gen.MoveItemResponse{}, nil
