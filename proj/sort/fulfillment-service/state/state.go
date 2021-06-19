@@ -11,7 +11,7 @@ import (
 
 type State interface {
 	PersistOrders(in *gen.LoadOrdersRequest) error
-	GetCompleteResponse() (*gen.CompleteResponse, error)
+	GetCompleteResponse() *gen.CompleteResponse
 	GetItemInfo(item *gen.Item) (ItemInfoModel, error)
 	RemoveItemFromOrder(orderId string, itemIndex int) error
 	GetRemainingItemsCount() int
@@ -55,7 +55,7 @@ func (s *state) PersistOrders(in *gen.LoadOrdersRequest) error {
 	return nil
 }
 
-func (s *state) GetCompleteResponse() (*gen.CompleteResponse, error) {
+func (s *state) GetCompleteResponse() *gen.CompleteResponse {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -76,7 +76,7 @@ func (s *state) GetCompleteResponse() (*gen.CompleteResponse, error) {
 	return &gen.CompleteResponse{
 		Status: "ok?",
 		Orders: preparedOrders,
-	}, nil // think out what could go wrong
+	}
 }
 
 func (s *state) GetItemInfo(item *gen.Item) (ItemInfoModel, error) {
@@ -86,11 +86,9 @@ func (s *state) GetItemInfo(item *gen.Item) (ItemInfoModel, error) {
 	for orderId, items := range s.orderIdItems {
 		for i, itm := range items {
 			itemsEqual, err := itemsEqual(item, itm)
-
 			if err != nil {
-				// handle error
+				return ItemInfoModel{}, errors.New(err.Error())
 			}
-
 			if itemsEqual {
 				return ItemInfoModel{
 					OrderId: orderId,
@@ -110,13 +108,12 @@ func (s *state) RemoveItemFromOrder(orderId string, itemIndex int) error {
 
 	s.orderIdItems[orderId][itemIndex] = s.orderIdItems[orderId][len(s.orderIdItems[orderId])-1]
 	s.orderIdItems[orderId] = s.orderIdItems[orderId][:len(s.orderIdItems[orderId])-1]
-
 	return nil // think what could go wrong in this method
 }
 
 func (s *state) GetRemainingItemsCount() int {
 	s.mu.RLock()
-	defer s.mu.Unlock()
+	defer s.mu.RUnlock()
 
 	count := 0
 	for _, items := range s.orderIdItems {

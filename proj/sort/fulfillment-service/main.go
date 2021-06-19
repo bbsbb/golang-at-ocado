@@ -11,23 +11,35 @@ import (
 )
 
 const serverPort = ":10001"
+const sortingRobotServerUrl = "localhost:10000"
 
 func main() {
-	grpcServer, lis := newFulfillmentServer()
+	conn, sortingRobotClient := getSortingRobotClient()
+	defer conn.Close()
+
+	grpcServer, lis := newFulfillmentServer(sortingRobotClient)
 
 	fmt.Printf("gRPC server started. Listening on %s\n", serverPort)
 	grpcServer.Serve(lis)
 }
 
-func newFulfillmentServer() (*grpc.Server, net.Listener) {
+func newFulfillmentServer(sortingRobotClient gen.SortingRobotClient) (*grpc.Server, net.Listener) {
 	lis, err := net.Listen("tcp", serverPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	gen.RegisterFulfillmentServer(grpcServer, newFulfillmentService())
+	gen.RegisterFulfillmentServer(grpcServer, newFulfillmentService(sortingRobotClient))
 	reflection.Register(grpcServer)
 
 	return grpcServer, lis
+}
+
+func getSortingRobotClient() (*grpc.ClientConn, gen.SortingRobotClient) {
+	conn, err := grpc.Dial(sortingRobotServerUrl, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return conn, gen.NewSortingRobotClient(conn)
 }
