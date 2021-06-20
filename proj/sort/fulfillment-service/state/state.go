@@ -10,18 +10,15 @@ import (
 )
 
 type State interface {
-	PersistOrders(in *gen.LoadOrdersRequest) error
-	GetCompleteResponse() *gen.CompleteResponse
+	PersistOrders(orders []*gen.Order) error
+	GetPreparedOrders() []*gen.PreparedOrder
 	GetItemInfo(item *gen.Item) (ItemInfoModel, error)
 	RemoveItemFromOrder(orderId string, itemIndex int) error
 	GetRemainingItemsCount() int
 }
 
-func NewState() State {
-	return &state{
-		orderIdItems:   make(map[string][]*gen.Item),
-		orderIdCubbyId: make(map[string]string),
-	}
+func New() State {
+	return new()
 }
 
 type state struct {
@@ -30,11 +27,18 @@ type state struct {
 	orderIdCubbyId map[string]string
 }
 
-func (s *state) PersistOrders(in *gen.LoadOrdersRequest) error {
+func new() *state {
+	return &state{
+		orderIdItems:   make(map[string][]*gen.Item),
+		orderIdCubbyId: make(map[string]string),
+	}
+}
+
+func (s *state) PersistOrders(orders []*gen.Order) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if len(in.Orders) > 10 {
+	if len(orders) > 10 {
 		return errors.New("only up to 10 orders allowed for now")
 	}
 
@@ -42,7 +46,7 @@ func (s *state) PersistOrders(in *gen.LoadOrdersRequest) error {
 		return errors.New("order cache full")
 	}
 
-	for _, order := range in.Orders {
+	for _, order := range orders {
 		cubbyIdForOrder := s.determineCubbyIdForOrder(order)
 
 		s.orderIdCubbyId[order.Id] = cubbyIdForOrder
@@ -55,12 +59,11 @@ func (s *state) PersistOrders(in *gen.LoadOrdersRequest) error {
 	return nil
 }
 
-func (s *state) GetCompleteResponse() *gen.CompleteResponse {
+func (s *state) GetPreparedOrders() []*gen.PreparedOrder {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	preparedOrders := make([]*gen.PreparedOrder, len(s.orderIdItems))
-
 	for orderId, items := range s.orderIdItems {
 		preparedOrders = append(preparedOrders, &gen.PreparedOrder{
 			Order: &gen.Order{
@@ -73,10 +76,7 @@ func (s *state) GetCompleteResponse() *gen.CompleteResponse {
 		})
 	}
 
-	return &gen.CompleteResponse{
-		Status: "ok?",
-		Orders: preparedOrders,
-	}
+	return preparedOrders
 }
 
 func (s *state) GetItemInfo(item *gen.Item) (ItemInfoModel, error) {

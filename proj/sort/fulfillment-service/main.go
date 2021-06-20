@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/fulfillment-service/service"
 	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -30,7 +31,7 @@ func newFulfillmentServer(sortingRobotClient gen.SortingRobotClient) (*grpc.Serv
 	}
 
 	grpcServer := grpc.NewServer()
-	gen.RegisterFulfillmentServer(grpcServer, newFulfillmentService(sortingRobotClient))
+	gen.RegisterFulfillmentServer(grpcServer, service.New(sortingRobotClient))
 	reflection.Register(grpcServer)
 
 	return grpcServer, lis

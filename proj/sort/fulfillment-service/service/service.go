@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"context"
@@ -8,25 +8,30 @@ import (
 	"github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen"
 )
 
-func newFulfillmentService(sortingRobotClient gen.SortingRobotClient) gen.FulfillmentServer {
-	return &fulfillmentService{
-		state:              state.NewState(),
-		sortingRobotClient: sortingRobotClient,
-	}
-}
-
 type fulfillmentService struct {
 	state              state.State
 	sortingRobotClient gen.SortingRobotClient
 }
 
+func New(sortingRobotClient gen.SortingRobotClient) gen.FulfillmentServer {
+	return &fulfillmentService{
+		state:              state.New(),
+		sortingRobotClient: sortingRobotClient,
+	}
+}
+
 func (s *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
-	err := s.state.PersistOrders(in)
+	err := s.state.PersistOrders(in.Orders)
 	if err != nil {
 		return nil, err
 	}
-	response := s.state.GetCompleteResponse()
+	preparedOrders := s.state.GetPreparedOrders()
+	s.sortItemsInCubbies()
 
+	return &gen.CompleteResponse{Status: "ok", Orders: preparedOrders}, nil
+}
+
+func (s *fulfillmentService) sortItemsInCubbies() {
 	for s.state.GetRemainingItemsCount() > 0 {
 		res, err := s.sortingRobotClient.SelectItem(context.Background(), &gen.SelectItemRequest{})
 		if err != nil {
@@ -43,6 +48,4 @@ func (s *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersR
 		s.state.RemoveItemFromOrder(itemInfo.OrderId, itemInfo.Index)
 		// Eventually think out to mark item as 'added to cubby' and clear order if all items are already in a cubby
 	}
-
-	return response, nil
 }
