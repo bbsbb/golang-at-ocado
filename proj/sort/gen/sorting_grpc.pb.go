@@ -21,6 +21,7 @@ type SortingRobotClient interface {
 	LoadItems(ctx context.Context, in *LoadItemsRequest, opts ...grpc.CallOption) (*LoadItemsResponse, error)
 	MoveItem(ctx context.Context, in *MoveItemRequest, opts ...grpc.CallOption) (*MoveItemResponse, error)
 	SelectItem(ctx context.Context, in *SelectItemRequest, opts ...grpc.CallOption) (*SelectItemResponse, error)
+	RemoveItemsByCode(ctx context.Context, in *RemoveItemsRequest, opts ...grpc.CallOption) (*RemoveItemsResponse, error)
 }
 
 type sortingRobotClient struct {
@@ -58,6 +59,15 @@ func (c *sortingRobotClient) SelectItem(ctx context.Context, in *SelectItemReque
 	return out, nil
 }
 
+func (c *sortingRobotClient) RemoveItemsByCode(ctx context.Context, in *RemoveItemsRequest, opts ...grpc.CallOption) (*RemoveItemsResponse, error) {
+	out := new(RemoveItemsResponse)
+	err := c.cc.Invoke(ctx, "/SortingRobot/RemoveItemsByCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SortingRobotServer is the server API for SortingRobot service.
 // All implementations should embed UnimplementedSortingRobotServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type SortingRobotServer interface {
 	LoadItems(context.Context, *LoadItemsRequest) (*LoadItemsResponse, error)
 	MoveItem(context.Context, *MoveItemRequest) (*MoveItemResponse, error)
 	SelectItem(context.Context, *SelectItemRequest) (*SelectItemResponse, error)
+	RemoveItemsByCode(context.Context, *RemoveItemsRequest) (*RemoveItemsResponse, error)
 }
 
 // UnimplementedSortingRobotServer should be embedded to have forward compatible implementations.
@@ -79,6 +90,9 @@ func (UnimplementedSortingRobotServer) MoveItem(context.Context, *MoveItemReques
 }
 func (UnimplementedSortingRobotServer) SelectItem(context.Context, *SelectItemRequest) (*SelectItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectItem not implemented")
+}
+func (UnimplementedSortingRobotServer) RemoveItemsByCode(context.Context, *RemoveItemsRequest) (*RemoveItemsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveItemsByCode not implemented")
 }
 
 // UnsafeSortingRobotServer may be embedded to opt out of forward compatibility for this service.
@@ -146,6 +160,24 @@ func _SortingRobot_SelectItem_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SortingRobot_RemoveItemsByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SortingRobotServer).RemoveItemsByCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SortingRobot/RemoveItemsByCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SortingRobotServer).RemoveItemsByCode(ctx, req.(*RemoveItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SortingRobot_ServiceDesc is the grpc.ServiceDesc for SortingRobot service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -164,6 +196,10 @@ var SortingRobot_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectItem",
 			Handler:    _SortingRobot_SelectItem_Handler,
+		},
+		{
+			MethodName: "RemoveItemsByCode",
+			Handler:    _SortingRobot_RemoveItemsByCode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

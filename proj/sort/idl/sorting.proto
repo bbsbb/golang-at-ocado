@@ -8,6 +8,7 @@ service SortingRobot {
   rpc LoadItems(LoadItemsRequest) returns (LoadItemsResponse) {}
   rpc MoveItem(MoveItemRequest) returns (MoveItemResponse) {}
   rpc SelectItem(SelectItemRequest) returns (SelectItemResponse) {}
+  rpc RemoveItemsByCode(RemoveItemsRequest) returns (RemoveItemsResponse);
 }
 
 message LoadItemsRequest {
@@ -20,6 +21,10 @@ message MoveItemRequest {
   types.Cubby cubby = 1;
 }
 
+message RemoveItemsRequest {
+  repeated string itemCodes = 1;
+}
+
 message MoveItemResponse {}
 
 message SelectItemRequest {}
@@ -27,5 +32,7 @@ message SelectItemRequest {}
 message SelectItemResponse {
   types.Item item = 1;
 }
+
+message RemoveItemsResponse {}
 
 
