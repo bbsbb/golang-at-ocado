@@ -31,6 +31,24 @@ func (s *sortingService) LoadItems(ctx context.Context, req *gen.LoadItemsReques
 	return &gen.Empty{}, nil
 }
 
+func (s *sortingService) RemoveItemsByCode(ctx context.Context, req *gen.RemoveItemsRequest) (*gen.Empty, error) {
+	log.Printf("Removing [%d] items from the Bin", len(req.ItemCodes))
+	removed := 0
+	for _, code := range req.ItemCodes {
+		for idx, item := range s.Bin {
+			if item.Code == code {
+				s.Bin = append(s.Bin[:idx], s.Bin[idx+1:]...)
+				removed++
+				break
+			}
+		}
+	}
+
+	log.Printf("Removed [%d] items while skipping [%d]", removed, len(req.ItemCodes) - removed)
+
+	return &gen.Empty{}, nil
+}
+
 func (s *sortingService) PickItem(context.Context, *gen.Empty) (*gen.PickItemResponse, error) {
 	if len(s.Bin) < 1 {
 		log.Println("no items in the bin, get out.")
