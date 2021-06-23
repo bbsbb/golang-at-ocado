@@ -26,14 +26,14 @@ func (s *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersR
 		return nil, err
 	}
 	preparedOrders := s.state.GetPreparedOrders()
-	s.sortItemsInCubbies()
+	s.sortItemsInCubbies(ctx)
 
 	return &gen.CompleteResponse{Status: "ok", Orders: preparedOrders}, nil
 }
 
-func (s *fulfillmentService) sortItemsInCubbies() {
+func (s *fulfillmentService) sortItemsInCubbies(ctx context.Context) {
 	for s.state.GetRemainingItemsCount() > 0 {
-		res, err := s.sortingRobotClient.SelectItem(context.Background(), &gen.SelectItemRequest{})
+		res, err := s.sortingRobotClient.SelectItem(ctx, &gen.SelectItemRequest{})
 		if err != nil {
 			fmt.Println(err.Error()) // handle error
 		}
@@ -41,7 +41,7 @@ func (s *fulfillmentService) sortItemsInCubbies() {
 		if err != nil {
 			fmt.Println(err.Error()) // handle error
 		}
-		_, err = s.sortingRobotClient.MoveItem(context.Background(), &gen.MoveItemRequest{Cubby: &gen.Cubby{Id: itemInfo.CubbyId}})
+		_, err = s.sortingRobotClient.MoveItem(ctx, &gen.MoveItemRequest{Cubby: &gen.Cubby{Id: itemInfo.CubbyId}})
 		if err != nil {
 			fmt.Println(err.Error()) // handle error
 		}
