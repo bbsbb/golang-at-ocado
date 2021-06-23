@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package types;
+option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
+
+message Item {
+    string code = 1;
+    string label = 2;
+}
+
+message Order {
+    string id = 1;
+    repeated Item items = 2;
+}
+
+message Cubby {
+    string id = 1;
+}

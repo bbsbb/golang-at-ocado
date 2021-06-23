@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package fulfillment;
+option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
+
+import "types.proto";
+
+service Fulfillment {
+    // Sync implementation
+    rpc LoadOrders(LoadOrdersRequest) returns (CompleteResponse);
+}
+
+message PreparedOrder {
+    types.Order order = 1;
+    types.Cubby cubby = 2;
+}
+
+message CompleteResponse {
+    string status = 1;
+    repeated PreparedOrder orders = 2;
+}
+
+message LoadOrdersRequest {
+    repeated types.Order orders = 1;
+}
+
