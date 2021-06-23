@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -33,6 +34,10 @@ func (s *sortingService) SelectItem(ctx context.Context, reqPayload *gen.SelectI
 
 func (s *sortingService) MoveItem(ctx context.Context, reqPayload *gen.MoveItemRequest) (*gen.MoveItemResponse, error) {
 	return s.moveItem(reqPayload)
+}
+
+func (s *sortingService) RemoveItemsByCode(ctx context.Context, reqPayload *gen.RemoveItemsRequest) (*gen.RemoveItemsResponse, error) {
+	return s.removeItemsByCode(reqPayload)
 }
 
 func (s *sortingService) loadItems(reqPayload *gen.LoadItemsRequest) (*gen.LoadItemsResponse, error) {
@@ -80,4 +85,22 @@ func (s *sortingService) moveItem(reqPayload *gen.MoveItemRequest) (*gen.MoveIte
 	s.itemSelected = nil
 
 	return &gen.MoveItemResponse{}, nil
+}
+
+func (s *sortingService) removeItemsByCode(reqPayload *gen.RemoveItemsRequest) (*gen.RemoveItemsResponse, error) {
+	log.Printf("Removing [%d] items from the Bin", len(reqPayload.ItemCodes))
+	removed := 0
+	for _, code := range reqPayload.ItemCodes {
+		for idx, item := range s.items {
+			if item.Code == code {
+				s.items = append(s.items[:idx], s.items[idx+1:]...)
+				removed++
+				break
+			}
+		}
+	}
+
+	log.Printf("Removed [%d] items while skipping [%d]", removed, len(reqPayload.ItemCodes)-removed)
+
+	return &gen.RemoveItemsResponse{}, nil
 }
