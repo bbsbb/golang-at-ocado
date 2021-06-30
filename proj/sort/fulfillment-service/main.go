@@ -31,7 +31,9 @@ func newFulfillmentServer(sortingRobotClient gen.SortingRobotClient) (*grpc.Serv
 	}
 
 	grpcServer := grpc.NewServer()
-	gen.RegisterFulfillmentServer(grpcServer, service.New(sortingRobotClient))
+	fulfillmentService := service.New(sortingRobotClient)
+	go fulfillmentService.StartExpectingWork()
+	gen.RegisterFulfillmentServer(grpcServer, fulfillmentService)
 	reflection.Register(grpcServer)
 
 	return grpcServer, lis

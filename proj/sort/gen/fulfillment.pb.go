@@ -20,6 +20,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type OrderState int32
+
+const (
+	OrderState_PENDING OrderState = 0
+	OrderState_READY   OrderState = 1
+	OrderState_FAILED  OrderState = 2
+)
+
+// Enum value maps for OrderState.
+var (
+	OrderState_name = map[int32]string{
+		0: "PENDING",
+		1: "READY",
+		2: "FAILED",
+	}
+	OrderState_value = map[string]int32{
+		"PENDING": 0,
+		"READY":   1,
+		"FAILED":  2,
+	}
+)
+
+func (x OrderState) Enum() *OrderState {
+	p := new(OrderState)
+	*p = x
+	return p
+}
+
+func (x OrderState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OrderState) Descriptor() protoreflect.EnumDescriptor {
+	return file_fulfillment_proto_enumTypes[0].Descriptor()
+}
+
+func (OrderState) Type() protoreflect.EnumType {
+	return &file_fulfillment_proto_enumTypes[0]
+}
+
+func (x OrderState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OrderState.Descriptor instead.
+func (OrderState) EnumDescriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{0}
+}
+
 type PreparedOrder struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -75,17 +124,18 @@ func (x *PreparedOrder) GetCubby() *Cubby {
 	return nil
 }
 
-type CompleteResponse struct {
+type FullfillmentStatus struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Status string           `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	Orders []*PreparedOrder `protobuf:"bytes,2,rep,name=orders,proto3" json:"orders,omitempty"`
+	Cubby *Cubby     `protobuf:"bytes,1,opt,name=cubby,proto3" json:"cubby,omitempty"`
+	Order *Order     `protobuf:"bytes,2,opt,name=order,proto3" json:"order,omitempty"`
+	State OrderState `protobuf:"varint,3,opt,name=state,proto3,enum=OrderState" json:"state,omitempty"`
 }
 
-func (x *CompleteResponse) Reset() {
-	*x = CompleteResponse{}
+func (x *FullfillmentStatus) Reset() {
+	*x = FullfillmentStatus{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fulfillment_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -93,13 +143,13 @@ func (x *CompleteResponse) Reset() {
 	}
 }
 
-func (x *CompleteResponse) String() string {
+func (x *FullfillmentStatus) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CompleteResponse) ProtoMessage() {}
+func (*FullfillmentStatus) ProtoMessage() {}
 
-func (x *CompleteResponse) ProtoReflect() protoreflect.Message {
+func (x *FullfillmentStatus) ProtoReflect() protoreflect.Message {
 	mi := &file_fulfillment_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -111,23 +161,30 @@ func (x *CompleteResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CompleteResponse.ProtoReflect.Descriptor instead.
-func (*CompleteResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use FullfillmentStatus.ProtoReflect.Descriptor instead.
+func (*FullfillmentStatus) Descriptor() ([]byte, []int) {
 	return file_fulfillment_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CompleteResponse) GetStatus() string {
+func (x *FullfillmentStatus) GetCubby() *Cubby {
 	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *CompleteResponse) GetOrders() []*PreparedOrder {
-	if x != nil {
-		return x.Orders
+		return x.Cubby
 	}
 	return nil
+}
+
+func (x *FullfillmentStatus) GetOrder() *Order {
+	if x != nil {
+		return x.Order
+	}
+	return nil
+}
+
+func (x *FullfillmentStatus) GetState() OrderState {
+	if x != nil {
+		return x.State
+	}
+	return OrderState_PENDING
 }
 
 type LoadOrdersRequest struct {
@@ -177,6 +234,231 @@ func (x *LoadOrdersRequest) GetOrders() []*Order {
 	return nil
 }
 
+type CompleteResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status string           `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Orders []*PreparedOrder `protobuf:"bytes,2,rep,name=orders,proto3" json:"orders,omitempty"`
+}
+
+func (x *CompleteResponse) Reset() {
+	*x = CompleteResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fulfillment_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CompleteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteResponse) ProtoMessage() {}
+
+func (x *CompleteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_fulfillment_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteResponse.ProtoReflect.Descriptor instead.
+func (*CompleteResponse) Descriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CompleteResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *CompleteResponse) GetOrders() []*PreparedOrder {
+	if x != nil {
+		return x.Orders
+	}
+	return nil
+}
+
+type OrderIdRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	OrderId string `protobuf:"bytes,1,opt,name=orderId,proto3" json:"orderId,omitempty"`
+}
+
+func (x *OrderIdRequest) Reset() {
+	*x = OrderIdRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fulfillment_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OrderIdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderIdRequest) ProtoMessage() {}
+
+func (x *OrderIdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_fulfillment_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderIdRequest.ProtoReflect.Descriptor instead.
+func (*OrderIdRequest) Descriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *OrderIdRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+type OrdersStatusRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OrdersStatusRequest) Reset() {
+	*x = OrdersStatusRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fulfillment_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OrdersStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrdersStatusRequest) ProtoMessage() {}
+
+func (x *OrdersStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_fulfillment_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrdersStatusRequest.ProtoReflect.Descriptor instead.
+func (*OrdersStatusRequest) Descriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{5}
+}
+
+type OrdersStatusResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status []*FullfillmentStatus `protobuf:"bytes,1,rep,name=status,proto3" json:"status,omitempty"`
+}
+
+func (x *OrdersStatusResponse) Reset() {
+	*x = OrdersStatusResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fulfillment_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OrdersStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrdersStatusResponse) ProtoMessage() {}
+
+func (x *OrdersStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_fulfillment_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrdersStatusResponse.ProtoReflect.Descriptor instead.
+func (*OrdersStatusResponse) Descriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *OrdersStatusResponse) GetStatus() []*FullfillmentStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+type MarkFullfilledResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *MarkFullfilledResponse) Reset() {
+	*x = MarkFullfilledResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fulfillment_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MarkFullfilledResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkFullfilledResponse) ProtoMessage() {}
+
+func (x *MarkFullfilledResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_fulfillment_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkFullfilledResponse.ProtoReflect.Descriptor instead.
+func (*MarkFullfilledResponse) Descriptor() ([]byte, []int) {
+	return file_fulfillment_proto_rawDescGZIP(), []int{7}
+}
+
 var File_fulfillment_proto protoreflect.FileDescriptor
 
 var file_fulfillment_proto_rawDesc = []byte{
@@ -187,24 +469,58 @@ var file_fulfillment_proto_rawDesc = []byte{
 	0x32, 0x0c, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x05,
 	0x6f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x05, 0x63, 0x75, 0x62, 0x62, 0x79, 0x18, 0x02,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x75, 0x62,
-	0x62, 0x79, 0x52, 0x05, 0x63, 0x75, 0x62, 0x62, 0x79, 0x22, 0x52, 0x0a, 0x10, 0x43, 0x6f, 0x6d,
-	0x70, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a,
-	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73,
-	0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x26, 0x0a, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x18,
-	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x64,
-	0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x22, 0x39, 0x0a,
-	0x11, 0x4c, 0x6f, 0x61, 0x64, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x24, 0x0a, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x62, 0x79, 0x52, 0x05, 0x63, 0x75, 0x62, 0x62, 0x79, 0x22, 0x7f, 0x0a, 0x12, 0x46, 0x75, 0x6c,
+	0x6c, 0x66, 0x69, 0x6c, 0x6c, 0x6d, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12,
+	0x22, 0x0a, 0x05, 0x63, 0x75, 0x62, 0x62, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c,
+	0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x75, 0x62, 0x62, 0x79, 0x52, 0x05, 0x63, 0x75,
+	0x62, 0x62, 0x79, 0x12, 0x22, 0x0a, 0x05, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72,
-	0x52, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x32, 0x42, 0x0a, 0x0b, 0x46, 0x75, 0x6c, 0x66,
-	0x69, 0x6c, 0x6c, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x33, 0x0a, 0x0a, 0x4c, 0x6f, 0x61, 0x64, 0x4f,
-	0x72, 0x64, 0x65, 0x72, 0x73, 0x12, 0x12, 0x2e, 0x4c, 0x6f, 0x61, 0x64, 0x4f, 0x72, 0x64, 0x65,
-	0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x43, 0x6f, 0x6d, 0x70,
-	0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x3a, 0x5a, 0x38,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x64, 0x69, 0x6d, 0x69, 0x74,
-	0x61, 0x72, 0x6b, 0x6f, 0x76, 0x61, 0x63, 0x68, 0x65, 0x76, 0x2f, 0x67, 0x6f, 0x6c, 0x61, 0x6e,
-	0x67, 0x2d, 0x61, 0x74, 0x2d, 0x6f, 0x63, 0x61, 0x64, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x2f,
-	0x73, 0x6f, 0x72, 0x74, 0x2f, 0x67, 0x65, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x05, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x12, 0x21, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0b, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x53, 0x74,
+	0x61, 0x74, 0x65, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x22, 0x39, 0x0a, 0x11, 0x4c, 0x6f,
+	0x61, 0x64, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x24, 0x0a, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x0c, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x06, 0x6f,
+	0x72, 0x64, 0x65, 0x72, 0x73, 0x22, 0x52, 0x0a, 0x10, 0x43, 0x6f, 0x6d, 0x70, 0x6c, 0x65, 0x74,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x12, 0x26, 0x0a, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x0e, 0x2e, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x64, 0x4f, 0x72, 0x64, 0x65,
+	0x72, 0x52, 0x06, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x22, 0x2a, 0x0a, 0x0e, 0x4f, 0x72, 0x64,
+	0x65, 0x72, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x6f,
+	0x72, 0x64, 0x65, 0x72, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6f, 0x72,
+	0x64, 0x65, 0x72, 0x49, 0x64, 0x22, 0x15, 0x0a, 0x13, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x53,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x43, 0x0a, 0x14,
+	0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2b, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x46, 0x75, 0x6c, 0x6c, 0x66, 0x69, 0x6c, 0x6c, 0x6d,
+	0x65, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x22, 0x18, 0x0a, 0x16, 0x4d, 0x61, 0x72, 0x6b, 0x46, 0x75, 0x6c, 0x6c, 0x66, 0x69, 0x6c,
+	0x6c, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2a, 0x30, 0x0a, 0x0a, 0x4f,
+	0x72, 0x64, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x50, 0x45, 0x4e,
+	0x44, 0x49, 0x4e, 0x47, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x52, 0x45, 0x41, 0x44, 0x59, 0x10,
+	0x01, 0x12, 0x0a, 0x0a, 0x06, 0x46, 0x41, 0x49, 0x4c, 0x45, 0x44, 0x10, 0x02, 0x32, 0xff, 0x01,
+	0x0a, 0x0b, 0x46, 0x75, 0x6c, 0x66, 0x69, 0x6c, 0x6c, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x33, 0x0a,
+	0x0a, 0x4c, 0x6f, 0x61, 0x64, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x12, 0x12, 0x2e, 0x4c, 0x6f,
+	0x61, 0x64, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x11, 0x2e, 0x43, 0x6f, 0x6d, 0x70, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x3c, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x53, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x42, 0x79, 0x49, 0x64, 0x12, 0x0f, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72,
+	0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x4f, 0x72, 0x64, 0x65,
+	0x72, 0x73, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x41, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73,
+	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x14, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x73, 0x53,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x4f,
+	0x72, 0x64, 0x65, 0x72, 0x73, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x3a, 0x0a, 0x0e, 0x4d, 0x61, 0x72, 0x6b, 0x46, 0x75, 0x6c, 0x6c, 0x66,
+	0x69, 0x6c, 0x6c, 0x65, 0x64, 0x12, 0x0f, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x49, 0x64, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x4d, 0x61, 0x72, 0x6b, 0x46, 0x75, 0x6c,
+	0x6c, 0x66, 0x69, 0x6c, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42,
+	0x3a, 0x5a, 0x38, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x64, 0x69,
+	0x6d, 0x69, 0x74, 0x61, 0x72, 0x6b, 0x6f, 0x76, 0x61, 0x63, 0x68, 0x65, 0x76, 0x2f, 0x67, 0x6f,
+	0x6c, 0x61, 0x6e, 0x67, 0x2d, 0x61, 0x74, 0x2d, 0x6f, 0x63, 0x61, 0x64, 0x6f, 0x2f, 0x70, 0x72,
+	0x6f, 0x6a, 0x2f, 0x73, 0x6f, 0x72, 0x74, 0x2f, 0x67, 0x65, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -219,26 +535,43 @@ func file_fulfillment_proto_rawDescGZIP() []byte {
 	return file_fulfillment_proto_rawDescData
 }
 
-var file_fulfillment_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_fulfillment_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_fulfillment_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_fulfillment_proto_goTypes = []interface{}{
-	(*PreparedOrder)(nil),     // 0: PreparedOrder
-	(*CompleteResponse)(nil),  // 1: CompleteResponse
-	(*LoadOrdersRequest)(nil), // 2: LoadOrdersRequest
-	(*Order)(nil),             // 3: types.Order
-	(*Cubby)(nil),             // 4: types.Cubby
+	(OrderState)(0),                // 0: OrderState
+	(*PreparedOrder)(nil),          // 1: PreparedOrder
+	(*FullfillmentStatus)(nil),     // 2: FullfillmentStatus
+	(*LoadOrdersRequest)(nil),      // 3: LoadOrdersRequest
+	(*CompleteResponse)(nil),       // 4: CompleteResponse
+	(*OrderIdRequest)(nil),         // 5: OrderIdRequest
+	(*OrdersStatusRequest)(nil),    // 6: OrdersStatusRequest
+	(*OrdersStatusResponse)(nil),   // 7: OrdersStatusResponse
+	(*MarkFullfilledResponse)(nil), // 8: MarkFullfilledResponse
+	(*Order)(nil),                  // 9: types.Order
+	(*Cubby)(nil),                  // 10: types.Cubby
 }
 var file_fulfillment_proto_depIdxs = []int32{
-	3, // 0: PreparedOrder.order:type_name -> types.Order
-	4, // 1: PreparedOrder.cubby:type_name -> types.Cubby
-	0, // 2: CompleteResponse.orders:type_name -> PreparedOrder
-	3, // 3: LoadOrdersRequest.orders:type_name -> types.Order
-	2, // 4: Fulfillment.LoadOrders:input_type -> LoadOrdersRequest
-	1, // 5: Fulfillment.LoadOrders:output_type -> CompleteResponse
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	9,  // 0: PreparedOrder.order:type_name -> types.Order
+	10, // 1: PreparedOrder.cubby:type_name -> types.Cubby
+	10, // 2: FullfillmentStatus.cubby:type_name -> types.Cubby
+	9,  // 3: FullfillmentStatus.order:type_name -> types.Order
+	0,  // 4: FullfillmentStatus.state:type_name -> OrderState
+	9,  // 5: LoadOrdersRequest.orders:type_name -> types.Order
+	1,  // 6: CompleteResponse.orders:type_name -> PreparedOrder
+	2,  // 7: OrdersStatusResponse.status:type_name -> FullfillmentStatus
+	3,  // 8: Fulfillment.LoadOrders:input_type -> LoadOrdersRequest
+	5,  // 9: Fulfillment.GetOrderStatusById:input_type -> OrderIdRequest
+	6,  // 10: Fulfillment.GetAllOrdersStatus:input_type -> OrdersStatusRequest
+	5,  // 11: Fulfillment.MarkFullfilled:input_type -> OrderIdRequest
+	4,  // 12: Fulfillment.LoadOrders:output_type -> CompleteResponse
+	7,  // 13: Fulfillment.GetOrderStatusById:output_type -> OrdersStatusResponse
+	7,  // 14: Fulfillment.GetAllOrdersStatus:output_type -> OrdersStatusResponse
+	8,  // 15: Fulfillment.MarkFullfilled:output_type -> MarkFullfilledResponse
+	12, // [12:16] is the sub-list for method output_type
+	8,  // [8:12] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_fulfillment_proto_init() }
@@ -261,7 +594,7 @@ func file_fulfillment_proto_init() {
 			}
 		}
 		file_fulfillment_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CompleteResponse); i {
+			switch v := v.(*FullfillmentStatus); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -284,19 +617,80 @@ func file_fulfillment_proto_init() {
 				return nil
 			}
 		}
+		file_fulfillment_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CompleteResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fulfillment_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OrderIdRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fulfillment_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OrdersStatusRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fulfillment_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OrdersStatusResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fulfillment_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MarkFullfilledResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fulfillment_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_fulfillment_proto_goTypes,
 		DependencyIndexes: file_fulfillment_proto_depIdxs,
+		EnumInfos:         file_fulfillment_proto_enumTypes,
 		MessageInfos:      file_fulfillment_proto_msgTypes,
 	}.Build()
 	File_fulfillment_proto = out.File

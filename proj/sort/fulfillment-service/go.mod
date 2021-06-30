@@ -2,6 +2,8 @@ module github.com/dimitarkovachev/golang-at-ocado/proj/sort/fulfillment-service
 
 go 1.16
 
+replace github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen => ../gen
+
 require (
 	github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210617061846-83173a87310a
 	github.com/preslavmihaylov/ordertocubby v0.0.0-20210617074346-1704d311e402

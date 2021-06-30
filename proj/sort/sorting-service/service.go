@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -12,13 +14,16 @@ import (
 )
 
 func newSortingService() gen.SortingRobotServer {
-	return &sortingService{}
+	return &sortingService{
+		cubbyToItems: make(map[string][]*gen.Item),
+	}
 }
 
 type sortingService struct {
 	mu           sync.Mutex
-	items        []*gen.Item
+	bin          []*gen.Item
 	itemSelected *gen.Item
+	cubbyToItems map[string][]*gen.Item
 }
 
 var randSource = rand.NewSource(time.Now().UnixNano())
@@ -40,11 +45,15 @@ func (s *sortingService) RemoveItemsByCode(ctx context.Context, reqPayload *gen.
 	return s.removeItemsByCode(reqPayload)
 }
 
+func (s *sortingService) AuditState(ctx context.Context, in *gen.AuditStateRequest) (*gen.AuditStateResponse, error) {
+	return s.auditState(in)
+}
+
 func (s *sortingService) loadItems(reqPayload *gen.LoadItemsRequest) (*gen.LoadItemsResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.items = append(s.items, reqPayload.Items...)
+	s.bin = append(s.bin, reqPayload.Items...)
 
 	return &gen.LoadItemsResponse{}, nil
 }
@@ -57,20 +66,23 @@ func (s *sortingService) selectItem() (*gen.SelectItemResponse, error) {
 		return nil, errors.New("item already selected in hand")
 	}
 
-	if len(s.items) == 0 {
+	if len(s.bin) == 0 {
 		return nil, errors.New("no items to select")
 	}
 
-	itemsCount := len(s.items)
+	itemsCount := len(s.bin)
 	randomItemIndex := 0
 
 	if itemsCount > 1 {
 		randomItemIndex = random.Intn(itemsCount - 1)
 	}
 
-	s.itemSelected = s.items[randomItemIndex]
-	s.items[randomItemIndex] = s.items[itemsCount-1]
-	s.items = s.items[:itemsCount-1]
+	fmt.Println("picking item...")
+	//<-time.After(1 * time.Second)
+
+	s.itemSelected = s.bin[randomItemIndex]
+	s.bin[randomItemIndex] = s.bin[itemsCount-1]
+	s.bin = s.bin[:itemsCount-1]
 
 	return &gen.SelectItemResponse{Item: s.itemSelected}, nil
 }
@@ -82,6 +94,14 @@ func (s *sortingService) moveItem(reqPayload *gen.MoveItemRequest) (*gen.MoveIte
 	if s.itemSelected == nil {
 		return nil, errors.New("no item in hand")
 	}
+	if !isValidCubbyID(reqPayload.Cubby.Id) {
+		return nil, errors.New("invalid cubbyId - only 1 - 10 for now")
+	}
+
+	fmt.Println("moving item...")
+	//<-time.After(1 * time.Second)
+
+	s.cubbyToItems[reqPayload.Cubby.Id] = append(s.cubbyToItems[reqPayload.Cubby.Id], s.itemSelected)
 	s.itemSelected = nil
 
 	return &gen.MoveItemResponse{}, nil
@@ -91,9 +111,9 @@ func (s *sortingService) removeItemsByCode(reqPayload *gen.RemoveItemsRequest) (
 	log.Printf("Removing [%d] items from the Bin", len(reqPayload.ItemCodes))
 	removed := 0
 	for _, code := range reqPayload.ItemCodes {
-		for idx, item := range s.items {
+		for idx, item := range s.bin {
 			if item.Code == code {
-				s.items = append(s.items[:idx], s.items[idx+1:]...)
+				s.bin = append(s.bin[:idx], s.bin[idx+1:]...)
 				removed++
 				break
 			}
@@ -103,4 +123,21 @@ func (s *sortingService) removeItemsByCode(reqPayload *gen.RemoveItemsRequest) (
 	log.Printf("Removed [%d] items while skipping [%d]", removed, len(reqPayload.ItemCodes)-removed)
 
 	return &gen.RemoveItemsResponse{}, nil
+}
+
+func (s *sortingService) auditState(in *gen.AuditStateRequest) (*gen.AuditStateResponse, error) {
+	cubbiesToItems := []*gen.CubbyToItems{}
+	for cubby, items := range s.cubbyToItems {
+		cubbiesToItems = append(cubbiesToItems, &gen.CubbyToItems{
+			Cubby: &gen.Cubby{Id: cubby},
+			Items: items,
+		})
+	}
+
+	return &gen.AuditStateResponse{CubbiesToItems: cubbiesToItems}, nil
+}
+
+func isValidCubbyID(id string) bool {
+	n, err := strconv.Atoi(id)
+	return err == nil && n >= 1 && n <= 10
 }

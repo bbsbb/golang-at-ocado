@@ -5,10 +5,6 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210620134929-f8a7b072c4f0 h1:flW+EexyEWtz+1UPl+9gQfsH0zHRkCEUWxbGh4rSIAw=
-github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210620134929-f8a7b072c4f0/go.mod h1:IziyPrF72cdU3ZGqZMYgci3IxFiQO0KsgTKcYSpz8N0=
-github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210622173111-d85be6bed5d6 h1:vaFxDS+CF3jOQ/0VXkEnj25sjLWfGIzdku1tzuvIJFw=
-github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen v0.0.0-20210622173111-d85be6bed5d6/go.mod h1:IziyPrF72cdU3ZGqZMYgci3IxFiQO0KsgTKcYSpz8N0=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=

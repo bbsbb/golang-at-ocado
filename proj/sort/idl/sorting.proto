@@ -9,6 +9,12 @@ service SortingRobot {
   rpc MoveItem(MoveItemRequest) returns (MoveItemResponse) {}
   rpc SelectItem(SelectItemRequest) returns (SelectItemResponse) {}
   rpc RemoveItemsByCode(RemoveItemsRequest) returns (RemoveItemsResponse);
+  rpc AuditState(AuditStateRequest) returns (AuditStateResponse);
+}
+
+message CubbyToItems {
+  types.Cubby cubby = 1;
+  repeated types.Item items = 2;
 }
 
 message LoadItemsRequest {
@@ -21,10 +27,6 @@ message MoveItemRequest {
   types.Cubby cubby = 1;
 }
 
-message RemoveItemsRequest {
-  repeated string itemCodes = 1;
-}
-
 message MoveItemResponse {}
 
 message SelectItemRequest {}
@@ -33,6 +35,14 @@ message SelectItemResponse {
   types.Item item = 1;
 }
 
+message RemoveItemsRequest {
+  repeated string itemCodes = 1;
+}
+
 message RemoveItemsResponse {}
 
+message AuditStateRequest {}
 
+message AuditStateResponse {
+  repeated CubbyToItems cubbiesToItems = 1;
+}

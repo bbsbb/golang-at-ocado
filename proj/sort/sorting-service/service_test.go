@@ -27,24 +27,24 @@ func TestLoadItems(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			initialItemsCount := len(tc.service.items)
+			initialItemsCount := len(tc.service.bin)
 			addedItemsCount := len(tc.loadItemsReqPayload.Items)
 
 			_, err := tc.service.loadItems(tc.loadItemsReqPayload)
 			assert.Nil(t, err)
-			assert.Equal(t, initialItemsCount+addedItemsCount, len(tc.service.items))
+			assert.Equal(t, initialItemsCount+addedItemsCount, len(tc.service.bin))
 		})
 	}
 }
 
 func TestSelectItem(t *testing.T) {
 	service := getLoadedService()
-	itemsCountBeforeSelecting := len(service.items)
+	itemsCountBeforeSelecting := len(service.bin)
 
 	res, err := service.selectItem()
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, len(service.items), itemsCountBeforeSelecting-1)
+	assert.Equal(t, len(service.bin), itemsCountBeforeSelecting-1)
 }
 
 func TestSelectItemErrors(t *testing.T) {

@@ -5,8 +5,10 @@ option go_package = "github.com/dimitarkovachev/golang-at-ocado/proj/sort/gen";
 import "types.proto";
 
 service Fulfillment {
-    // Sync implementation
     rpc LoadOrders(LoadOrdersRequest) returns (CompleteResponse);
+    rpc GetOrderStatusById(OrderIdRequest) returns (OrdersStatusResponse);
+    rpc GetAllOrdersStatus(OrdersStatusRequest) returns (OrdersStatusResponse);
+    rpc MarkFullfilled(OrderIdRequest) returns (MarkFullfilledResponse);
 }
 
 message PreparedOrder {
@@ -14,12 +16,36 @@ message PreparedOrder {
     types.Cubby cubby = 2;
 }
 
-message CompleteResponse {
-    string status = 1;
-    repeated PreparedOrder orders = 2;
+enum OrderState {
+    PENDING = 0;
+    READY = 1;
+    FAILED = 2;
+}
+
+message FullfillmentStatus {
+    types.Cubby cubby = 1;
+    types.Order order = 2;
+    OrderState state = 3;
 }
 
 message LoadOrdersRequest {
     repeated types.Order orders = 1;
 }
+
+message CompleteResponse {
+    string status = 1;
+    repeated PreparedOrder orders = 2;
+}
+
+message OrderIdRequest {
+    string orderId = 1;
+}
+
+message OrdersStatusRequest {}
+
+message OrdersStatusResponse {
+    repeated FullfillmentStatus status = 1;
+}
+
+message MarkFullfilledResponse {}
 
