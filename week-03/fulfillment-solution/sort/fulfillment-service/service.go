@@ -163,8 +163,15 @@ func scheduleWork(work func([]*gen.Order)) chan []*gen.Order {
 	return ordersCh
 }
 
-func (f *fulfillmentService) GetOrderStatusById(ctx context.Context, in *gen.OrderIdRequest) (*gen.OrdersStatusResponse, error) {
-	return nil, nil
+func (fs *fulfillmentService) GetOrderStatusById(ctx context.Context, in *gen.OrderIdRequest) (*gen.OrdersStatusResponse, error) {
+	fs.totallyConcurrent.Lock()
+	defer fs.totallyConcurrent.Unlock()
+	if _, ok := fs.orders[in.OrderId]; !ok {
+		return nil, fmt.Errorf("never heard of order %s", in.OrderId)
+	}
+	return &gen.OrdersStatusResponse{
+		Status: []*gen.FullfillmentStatus{fs.orders[in.OrderId]},
+	}, nil
 }
 
 func (f *fulfillmentService) GetAllOrdersStatus(context.Context, *gen.Empty) (*gen.OrdersStatusResponse, error) {
