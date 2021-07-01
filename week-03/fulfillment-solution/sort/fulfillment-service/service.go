@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log"
 
 	"github.com/bbsbb/go-at-ocado/sort/gen"
 	"github.com/preslavmihaylov/ordertocubby"
@@ -12,40 +12,47 @@ import (
 const cubbiesCnt = 10
 
 func newFulfillmentService(client gen.SortingRobotClient) gen.FulfillmentServer {
-	return &fulfillmentService{
+	fs := &fulfillmentService{
 		sortingRobot: client,
 	}
+	fs.ordersCh = scheduleWork(fs.processBatch)
+	return fs
 }
 
 type fulfillmentService struct {
 	sortingRobot gen.SortingRobotClient
+	ordersCh     chan []*gen.Order
 }
 
-func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
-	// map orders to cubbies
-	ordersToCubbies := mapOrdersToCubbies(in.Orders)
-	_ = ordersToCubbies
+func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
+	ordersToCubbies := mapOrdersToCubbies(orders)
 
-	for _, order := range in.Orders {
+	for _, order := range orders {
 		for _, item := range order.Items {
 			_ = item
 
-			resp, err := fs.sortingRobot.PickItem(ctx, &gen.Empty{})
+			resp, err := fs.sortingRobot.PickItem(context.Background(), &gen.Empty{})
 			if err != nil {
-				return nil, &FulfillmentFailedError{}
+				// What do?
 			}
 
-			cubbyID := getCubbyForItem(resp.Item)
-			_, err = fs.sortingRobot.PlaceInCubby(ctx, &gen.PlaceInCubbyRequest{
+			cubbyID := getCubbyForItem(resp.Item, ordersToCubbies, orders)
+			_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
 				Cubby: &gen.Cubby{Id: cubbyID},
 			})
 			if err != nil {
-				return nil, fmt.Errorf("place in cubby failed: %v", err)
+				// What do?
 			}
 		}
 	}
+}
 
-	return nil, errors.New("not implemented")
+func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
+	go func() {
+		fs.ordersCh <- in.Orders
+	}()
+
+	return &gen.CompleteResponse{}, nil
 }
 
 func mapOrdersToCubbies(orders []*gen.Order) map[string]string {
@@ -77,6 +84,37 @@ func mapOrderToCubby(usedCubbies map[string]bool, id string, cubbiesCnt int) str
 	}
 }
 
-func getCubbyForItem(item *gen.Item) string {
+func getOrderForItem(item *gen.Item, orders[]*gen.Order) *gen.Order{
+	var match *gen.Order
+	return match
+}
+
+func getCubbyForItem(item *gen.Item, , orders []*gen.Order, cubbyMapping map[string]string) string {
+	log.Println(mapOrdersToCubbies)
+	log.Fatal("DONE")
 	return "1"
+}
+
+func scheduleWork(work func([]*gen.Order)) chan []*gen.Order {
+	ordersCh := make(chan []*gen.Order)
+	go func() {
+		log.Printf("Initializing orders worker...")
+		for {
+			orders := <-ordersCh
+			work(orders)
+		}
+	}()
+	return ordersCh
+}
+
+func (f *fulfillmentService) GetOrderStatusById(ctx context.Context, in *gen.OrderIdRequest) (*gen.OrdersStatusResponse, error) {
+	return nil, nil
+}
+
+func (f *fulfillmentService) GetAllOrdersStatus(context.Context, *gen.Empty) (*gen.OrdersStatusResponse, error) {
+	return nil, nil
+}
+
+func (f *fulfillmentService) MarkFullfilled(context.Context, *gen.OrderIdRequest) (*gen.Empty, error) {
+	return nil, nil
 }

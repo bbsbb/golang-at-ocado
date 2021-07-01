@@ -6,13 +6,11 @@ option go_package = "github.com/bbsbb/go-at-ocado/sort/gen";
 import "types.proto";
 
 service SortingRobot {
-    rpc LoadItems(LoadItemsRequest) returns (Empty);
-    rpc PickItem(Empty) returns (PickItemResponse);
-    rpc PlaceInCubby(PlaceInCubbyRequest) returns (Empty);
-    rpc AuditState(Empty) returns (AuditStateResponse);
+    rpc LoadItems(LoadItemsRequest) returns (types.Empty);
+    rpc PickItem(types.Empty) returns (PickItemResponse);
+    rpc PlaceInCubby(PlaceInCubbyRequest) returns (types.Empty);
+    rpc AuditState(types.Empty) returns (AuditStateResponse);
 }
-
-message Empty {}
 
 message LoadItemsRequest {
     repeated types.Item items = 1;
