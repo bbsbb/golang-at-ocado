@@ -42,18 +42,22 @@ func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
 
 			resp, err := fs.sortingRobot.PickItem(context.Background(), &gen.Empty{})
 			if err != nil {
-				// What do?
+				log.Println("WTF ERROR?")
 			}
 
+			log.Println("Locking.......")
 			fs.totallyConcurrent.Lock()
+			log.Println("Locked!!!")
 			cubbyID := getCubbyForItem(resp.Item, fs.orders)
 			fs.totallyConcurrent.Unlock()
 
+			log.Println("PLACING IN CUBBY...")
 			_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
 				Cubby: &gen.Cubby{Id: cubbyID},
 			})
+
 			if err != nil {
-				// What do?
+				log.Println("WTF ERROR?")
 			}
 		}
 	}
@@ -74,7 +78,10 @@ func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrders
 		fs.totallyConcurrent.Lock()
 		for _, o := range in.Orders {
 			fs.orders[o.Id] = &gen.FullfillmentStatus{
-				Order: o,
+				Order: &gen.Order{
+					Id:    o.Id,
+					Items: append([]*gen.Item{}, o.Items...),
+				},
 				Cubby: &gen.Cubby{},
 				State: gen.OrderState_PENDING,
 			}
