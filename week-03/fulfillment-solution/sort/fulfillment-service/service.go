@@ -34,7 +34,9 @@ func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
 		fs.orders[orderID].Cubby.Id = cubbyID
 	}
 
+	log.Printf("Processing %d orders", len(orders))
 	for _, order := range orders {
+
 		for _, item := range order.Items {
 			_ = item // Na preslav^w plamen hack-a wtf?
 
@@ -43,7 +45,10 @@ func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
 				// What do?
 			}
 
+			fs.totallyConcurrent.Lock()
 			cubbyID := getCubbyForItem(resp.Item, fs.orders)
+			fs.totallyConcurrent.Unlock()
+
 			_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
 				Cubby: &gen.Cubby{Id: cubbyID},
 			})
@@ -51,6 +56,16 @@ func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
 				// What do?
 			}
 		}
+	}
+
+	for orderID, status := range fs.orders {
+		log.Printf("Order id : %s", orderID)
+		log.Printf(
+			"Items: %d\n Cubby: %s\n Status: %s",
+			len(status.Order.Items),
+			status.Cubby.Id,
+			status.State,
+		)
 	}
 }
 
@@ -106,28 +121,27 @@ func getOrderForItem(item *gen.Item, orders []*gen.Order) *gen.Order {
 }
 
 func getCubbyForItem(lookup *gen.Item, threadsafeMap map[string]*gen.FullfillmentStatus) string {
-	for _, status := range threadsafeMap {
+	var orderID string
+	indexMatch := -1
+	for o, status := range threadsafeMap {
 		for idx, candidate := range status.Order.Items {
 			if lookup.Code == candidate.Code {
-				// Remove
-				// return the cubby
-				status.Order.Items = append(
-					status.Order.Items[:idx],
-					status.Order.Items[idx+1:]...,
-				)
-				return status.Cubby.Id
+				indexMatch = idx
+				orderID = o
+				break
 			}
 		}
 
+		if indexMatch != -1 {
+			break
+		}
 	}
-
-	// We get an item
-	// We solve it to order - handle item in two possible orders
-	// We lookup the cubbyId for the orders
-
-	log.Println(mapOrdersToCubbies)
-	log.Fatal("DONE")
-	return "1"
+	match := threadsafeMap[orderID].Cubby.Id
+	threadsafeMap[orderID].Order.Items = append(
+		threadsafeMap[orderID].Order.Items[:indexMatch],
+		threadsafeMap[orderID].Order.Items[indexMatch+1:]...,
+	)
+	return match
 }
 
 func scheduleWork(work func([]*gen.Order)) chan []*gen.Order {
