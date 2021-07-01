@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// TODO: do in a one constant statement
 const serverPort = ":10001"
 const sortingRobotServerUrl = "localhost:10000"
 

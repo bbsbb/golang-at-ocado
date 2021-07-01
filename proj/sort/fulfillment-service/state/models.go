@@ -9,10 +9,11 @@ type itemStatus struct {
 
 type ItemInfo struct {
 	OrderId string
-	Index   int
+	Index   int // TODO: questionable
 	CubbyId string
 }
 
+// TODO: add items to the order info
 type OrderInfo struct {
 	State gen.OrderState
 	Order *gen.Order

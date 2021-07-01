@@ -10,13 +10,19 @@ import (
 )
 
 type State interface {
-	PersistOrders(orders []*gen.Order) error
-	GetPreparedOrders() []*gen.PreparedOrder
+	PersistOrders(orders []*gen.Order) error 
+	
+	GetPreparedOrders() []*gen.PreparedOrder // TODO: you don;t need this, doesn't make sense for the state to know what is a prepared order
+
 	GetItemInfo(item *gen.Item) (ItemInfo, error)
 	MarkItemInCubby(orderId string, itemIndex int) error
+
 	GetRemainingItemsCount() int
+
 	GetOrderInfo(orderId string) (OrderInfo, error)
-	GetAllOrderIds() ([]string, error)
+	GetAllOrderIds() ([]string, error) // TODO: make this return the whole state
+
+	// TODO: these three methods should belong to the newly created order processor
 	IsCurrentlyProcessing() bool
 	SetCurrentlyProccessingFalse()
 	SetCurrentlyProccessingTrue()
@@ -24,13 +30,14 @@ type State interface {
 
 func New() State {
 	return &state{
+		// TODO: in the current state there can be one map orderid -> order info (where order indo contains info about the items)
 		orderIdToItems:   make(map[string][]*itemStatus),
 		orderIdToCubbyId: make(map[string]string),
 	}
 }
 
 type state struct {
-	mu                  sync.RWMutex
+	mu                  sync.RWMutex // TODO: change mutex
 	orderIdToItems      map[string][]*itemStatus
 	orderIdToCubbyId    map[string]string
 	currentlyProcessing bool
@@ -50,6 +57,7 @@ func (s *state) PersistOrders(orders []*gen.Order) error {
 	for _, order := range orders {
 		cubbyIdForOrder := s.determineCubbyIdForOrder(order)
 
+		// TODO: this will get simpler if we have the map to order info
 		s.orderIdToCubbyId[order.Id] = cubbyIdForOrder
 		fmt.Printf("order: %v -> cubby: %v\n", order.Id, cubbyIdForOrder)
 
@@ -63,6 +71,7 @@ func (s *state) PersistOrders(orders []*gen.Order) error {
 	return nil
 }
 
+// TODO: useless
 func (s *state) GetPreparedOrders() []*gen.PreparedOrder {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -98,10 +107,12 @@ func (s *state) GetItemInfo(item *gen.Item) (ItemInfo, error) {
 			if itemStatus == nil || itemStatus.inCubby {
 				continue
 			}
+
 			itemsEqual, err := itemsEqual(item, itemStatus.item)
 			if err != nil {
 				return ItemInfo{}, errors.New(err.Error())
 			}
+
 			if itemsEqual {
 				return ItemInfo{
 					OrderId: orderId,
@@ -128,6 +139,7 @@ func (s *state) MarkItemInCubby(orderId string, itemIndex int) error {
 	}
 	s.orderIdToItems[orderId][itemIndex].inCubby = true
 
+	// TODO: you can mark an order as fulfilled if all items are in a cuby
 	return nil
 }
 
