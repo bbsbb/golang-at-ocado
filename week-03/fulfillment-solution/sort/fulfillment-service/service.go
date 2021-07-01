@@ -29,31 +29,29 @@ type fulfillmentService struct {
 }
 
 func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
-
-	for k := range fs.orders {
-		log.Println(k)
+	ordersToCubbies := mapOrdersToCubbies(orders)
+	for orderID, cubbyID := range ordersToCubbies {
+		fs.orders[orderID].Cubby.Id = cubbyID
 	}
 
-	// ordersToCubbies := mapOrdersToCubbies(orders)
+	for _, order := range orders {
+		for _, item := range order.Items {
+			_ = item // Na preslav^w plamen hack-a wtf?
 
-	// for _, order := range orders {
-	// 	for _, item := range order.Items {
-	// 		_ = item
+			resp, err := fs.sortingRobot.PickItem(context.Background(), &gen.Empty{})
+			if err != nil {
+				// What do?
+			}
 
-	// 		resp, err := fs.sortingRobot.PickItem(context.Background(), &gen.Empty{})
-	// 		if err != nil {
-	// 			// What do?
-	// 		}
-
-	// 		cubbyID := getCubbyForItem(resp.Item, orders, ordersToCubbies)
-	// 		_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
-	// 			Cubby: &gen.Cubby{Id: cubbyID},
-	// 		})
-	// 		if err != nil {
-	// 			// What do?
-	// 		}
-	// 	}
-	// }
+			cubbyID := getCubbyForItem(resp.Item, fs.orders)
+			_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
+				Cubby: &gen.Cubby{Id: cubbyID},
+			})
+			if err != nil {
+				// What do?
+			}
+		}
+	}
 }
 
 func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
@@ -107,7 +105,22 @@ func getOrderForItem(item *gen.Item, orders []*gen.Order) *gen.Order {
 	return match
 }
 
-func getCubbyForItem(item *gen.Item, orders []*gen.Order, cubbyMapping map[string]string) string {
+func getCubbyForItem(lookup *gen.Item, threadsafeMap map[string]*gen.FullfillmentStatus) string {
+	for _, status := range threadsafeMap {
+		for idx, candidate := range status.Order.Items {
+			if lookup.Code == candidate.Code {
+				// Remove
+				// return the cubby
+				status.Order.Items = append(
+					status.Order.Items[:idx],
+					status.Order.Items[idx+1:]...,
+				)
+				return status.Cubby.Id
+			}
+		}
+
+	}
+
 	// We get an item
 	// We solve it to order - handle item in two possible orders
 	// We lookup the cubbyId for the orders
