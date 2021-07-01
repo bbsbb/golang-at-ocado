@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log"
+	"sync"
 
 	"github.com/bbsbb/go-at-ocado/sort/gen"
 	"github.com/preslavmihaylov/ordertocubby"
@@ -12,40 +13,84 @@ import (
 const cubbiesCnt = 10
 
 func newFulfillmentService(client gen.SortingRobotClient) gen.FulfillmentServer {
-	return &fulfillmentService{
+	fs := &fulfillmentService{
 		sortingRobot: client,
+		orders:       make(map[string]*gen.FullfillmentStatus),
 	}
+	fs.ordersCh = scheduleWork(fs.processBatch)
+	return fs
 }
 
 type fulfillmentService struct {
-	sortingRobot gen.SortingRobotClient
+	sortingRobot      gen.SortingRobotClient
+	ordersCh          chan []*gen.Order
+	orders            map[string]*gen.FullfillmentStatus
+	totallyConcurrent sync.Mutex
 }
 
-func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
-	// map orders to cubbies
-	ordersToCubbies := mapOrdersToCubbies(in.Orders)
-	_ = ordersToCubbies
+func (fs *fulfillmentService) processBatch(orders []*gen.Order) {
+	ordersToCubbies := mapOrdersToCubbies(orders)
+	for orderID, cubbyID := range ordersToCubbies {
+		fs.orders[orderID].Cubby.Id = cubbyID
+	}
 
-	for _, order := range in.Orders {
+	log.Printf("Processing %d orders", len(orders))
+	for _, order := range orders {
+
 		for _, item := range order.Items {
-			_ = item
+			_ = item // Na preslav^w plamen hack-a wtf?
 
-			resp, err := fs.sortingRobot.PickItem(ctx, &gen.Empty{})
+			resp, err := fs.sortingRobot.PickItem(context.Background(), &gen.Empty{})
 			if err != nil {
-				return nil, &FulfillmentFailedError{}
+				log.Println("WTF ERROR?")
 			}
 
-			cubbyID := getCubbyForItem(resp.Item)
-			_, err = fs.sortingRobot.PlaceInCubby(ctx, &gen.PlaceInCubbyRequest{
+			log.Println("Locking.......")
+			fs.totallyConcurrent.Lock()
+			log.Println("Locked!!!")
+			cubbyID := getCubbyForItem(resp.Item, fs.orders)
+			fs.totallyConcurrent.Unlock()
+
+			log.Println("PLACING IN CUBBY...")
+			_, err = fs.sortingRobot.PlaceInCubby(context.Background(), &gen.PlaceInCubbyRequest{
 				Cubby: &gen.Cubby{Id: cubbyID},
 			})
+
 			if err != nil {
-				return nil, fmt.Errorf("place in cubby failed: %v", err)
+				log.Println("WTF ERROR?")
 			}
 		}
 	}
 
-	return nil, errors.New("not implemented")
+	for orderID, status := range fs.orders {
+		log.Printf("Order id : %s", orderID)
+		log.Printf(
+			"Items: %d\n Cubby: %s\n Status: %s",
+			len(status.Order.Items),
+			status.Cubby.Id,
+			status.State,
+		)
+	}
+}
+
+func (fs *fulfillmentService) LoadOrders(ctx context.Context, in *gen.LoadOrdersRequest) (*gen.CompleteResponse, error) {
+	go func() {
+		fs.totallyConcurrent.Lock()
+		for _, o := range in.Orders {
+			fs.orders[o.Id] = &gen.FullfillmentStatus{
+				Order: &gen.Order{
+					Id:    o.Id,
+					Items: append([]*gen.Item{}, o.Items...),
+				},
+				Cubby: &gen.Cubby{},
+				State: gen.OrderState_PENDING,
+			}
+		}
+		fs.totallyConcurrent.Unlock()
+		fs.ordersCh <- in.Orders
+	}()
+
+	return &gen.CompleteResponse{}, nil
 }
 
 func mapOrdersToCubbies(orders []*gen.Order) map[string]string {
@@ -77,6 +122,62 @@ func mapOrderToCubby(usedCubbies map[string]bool, id string, cubbiesCnt int) str
 	}
 }
 
-func getCubbyForItem(item *gen.Item) string {
-	return "1"
+func getOrderForItem(item *gen.Item, orders []*gen.Order) *gen.Order {
+	var match *gen.Order
+	return match
+}
+
+func getCubbyForItem(lookup *gen.Item, threadsafeMap map[string]*gen.FullfillmentStatus) string {
+	var orderID string
+	indexMatch := -1
+	for o, status := range threadsafeMap {
+		for idx, candidate := range status.Order.Items {
+			if lookup.Code == candidate.Code {
+				indexMatch = idx
+				orderID = o
+				break
+			}
+		}
+
+		if indexMatch != -1 {
+			break
+		}
+	}
+	match := threadsafeMap[orderID].Cubby.Id
+	threadsafeMap[orderID].Order.Items = append(
+		threadsafeMap[orderID].Order.Items[:indexMatch],
+		threadsafeMap[orderID].Order.Items[indexMatch+1:]...,
+	)
+	return match
+}
+
+func scheduleWork(work func([]*gen.Order)) chan []*gen.Order {
+	ordersCh := make(chan []*gen.Order)
+	go func() {
+		log.Printf("Initializing orders worker...")
+		for {
+			orders := <-ordersCh
+			work(orders)
+		}
+	}()
+	return ordersCh
+}
+
+func (fs *fulfillmentService) GetOrderStatusById(ctx context.Context, in *gen.OrderIdRequest) (*gen.OrdersStatusResponse, error) {
+	fs.totallyConcurrent.Lock()
+	defer fs.totallyConcurrent.Unlock()
+	if _, ok := fs.orders[in.OrderId]; !ok {
+		return nil, fmt.Errorf("never heard of order %s", in.OrderId)
+	}
+	return &gen.OrdersStatusResponse{
+		Status: []*gen.FullfillmentStatus{fs.orders[in.OrderId]},
+	}, nil
+}
+
+func (f *fulfillmentService) GetAllOrdersStatus(context.Context, *gen.Empty) (*gen.OrdersStatusResponse, error) {
+	return nil, nil
+}
+
+func (f *fulfillmentService) MarkFullfilled(context.Context, *gen.OrderIdRequest) (*gen.Empty, error) {
+	return nil, nil
 }

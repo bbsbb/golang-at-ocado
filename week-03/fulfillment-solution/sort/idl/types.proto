@@ -16,3 +16,5 @@ message Order {
 message Cubby {
     string id = 1;
 }
+
+message Empty {}
